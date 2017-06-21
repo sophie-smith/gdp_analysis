@@ -1,0 +1,159 @@
+#attach the data and perform eda
+setwd("/Users/sophiesmith/Desktop/Transfer Files/Final Project/Data2003/Data")
+data<-read.csv(file="CompiledData03.csv")
+attach(data)
+#get rid of missing data values
+data=na.omit(data)
+#summary statistics and matrix scatter plot
+summary(data)
+pairs(data)
+
+# cluster analysis
+
+rm(list=ls())
+graphics.off()
+
+input.file<-"CompiledData03.csv"
+no.of.clusters=7
+print.file="Y" 
+
+setwd("/Users/sophiesmith/Desktop/Transfer Files/Final Project/Data2003/Data")
+library(lattice)
+ 
+# READ DATA
+data<-read.csv(input.file,na.strings=c("NA","NaN", " "),header=T)
+attach(data)
+
+# DATA PRE-PROCESSING
+nomissingdata <- na.omit(data) # listwise deletion of missing
+numericdata <-nomissingdata[sapply(data, is.numeric)]
+scaleddata <- scale(numericdata) # standardize variables 
+
+# FAST EDA
+summary(data)
+NROW(data);NROW(na.omit(data))
+sapply(data, function(x) sum(is.na(x)))
+dev.new()
+par(mfrow=c(3,5))
+for (i in 1:dim(numericdata)[2]) {hist(numericdata[,i],xlab=names(numericdata)[i],main=NULL)}
+
+# AID TO DETERMINE NUMBER OF CLUSTERS
+maxclusters=min(20,NROW(nomissingdata)-1) 
+wss <- (nrow(scaleddata)-1)*sum(apply(scaleddata,2,var))
+ for (i in 2:maxclusters) wss[i] <- sum(kmeans(scaleddata, 
+    centers=i)$withinss)
+dev.new()
+plot(1:maxclusters, wss, type="b", xlab="Number of Clusters", ylab="Within groups sum of squares",cex=0.5)
+
+# K-MEANS CLUSTER ANALYSIS
+fit <- kmeans(scaleddata, no.of.clusters) #  cluster solution
+
+dev.new()
+library(fpc)
+plotcluster(scaleddata, fit$cluster)
+  
+# PARALLEL PLOT 
+dev.new() 
+scaleddata <- data.frame(scaleddata, fit$cluster)  
+parallelplot(~scaleddata[1:dim(scaleddata)[2]-1] | as.factor(fit.cluster), scaleddata) 
+
+# MATRIX SCATTER PLOT
+dev.new()
+numericdata <- data.frame(numericdata, fit$cluster)  
+pairs(numericdata[,-dim(numericdata)[2]],col=as.factor(numericdata$fit.cluster),lower.panel=NULL,pch=16,cex=2)
+cor(numericdata[,-dim(numericdata)[2]],method="pearson") ##THIS IS NEW
+
+# DATA FRAME WITH CLUSTER INFORMATION
+nomissingdata<-data.frame(nomissingdata,fit$cluster)
+ordered<-nomissingdata[with(nomissingdata,order(nomissingdata$fit.cluster)),]
+
+# GET CLUSTER MEANS 
+aggregate(numericdata,by=list(fit$cluster),FUN=mean)
+
+# PLOT CLUSTER MEANS BY EACH VARIABLE
+a<-data.frame(aggregate(numericdata,by=list(fit$cluster),FUN=mean))
+dev.new()
+par(mfrow=c(3,5))
+ for (i in 2:as.numeric(dim(a)[2]-1)) {dotchart(a[,i],main=names(a[i]),col=a[,1], pch=16, cex=.8)}
+
+# WRITE CLUSTER RESULTS INTO  .CSV FILE
+if (print.file=="Y") write.csv(nomissingdata, paste(input.file," ",no.of.clusters," clusters",".csv")) # clustered data in the original order
+if (print.file=="Y") write.csv(ordered,paste(input.file," ",no.of.clusters," clusters ordered",".csv")) # clustered data ordered by clusters
+
+par(mfrow=c(2,5))
+
+lw1 <- loess(Per.Capita.GDP ~Life.Expectancy,data=a,family="gaussian", span=.75, degree=0)
+plot(Per.Capita.GDP ~Life.Expectancy, data=a,pch=19,cex=1.5,col="blue")
+j <- order(a$Life.Expectancy)
+lines(a$Life.Expectancy[j],lw1$fitted[j],col="orange",lwd=3)
+
+lw1 <- loess(Per.Capita.GDP ~Females.in.Labor.Force,data=a,family="gaussian", span=.75, degree=0)
+plot(Per.Capita.GDP ~Females.in.Labor.Force, data=a,pch=19,cex=1.5,col="blue")
+j <- order(a$Females.in.Labor.Force)
+lines(a$Females.in.Labor.Force[j],lw1$fitted[j],col="orange",lwd=3)
+
+lw1 <- loess(Per.Capita.GDP ~Internet.Users ,data=a,family="gaussian", span=.75, degree=0)
+plot(Per.Capita.GDP ~Internet.Users , data=a,pch=19,cex=1.5,col="blue")
+j <- order(a$Internet.Users )
+lines(a$Internet.Users [j],lw1$fitted[j],col="orange",lwd=3)
+
+lw1 <- loess(Per.Capita.GDP ~Mobile.Cellular.Subscriptions  ,data=a,family="gaussian", span=.75, degree=0)
+plot(Per.Capita.GDP ~Mobile.Cellular.Subscriptions  , data=a,pch=19,cex=1.5,col="blue")
+j <- order(a$Mobile.Cellular.Subscription )
+lines(a$Mobile.Cellular.Subscription  [j],lw1$fitted[j],col="orange",lwd=3)
+
+lw1 <- loess(Per.Capita.GDP ~High.Tech.Exports   ,data=a,family="gaussian", span=.75, degree=0)
+plot(Per.Capita.GDP ~High.Tech.Exports , data=a,pch=19,cex=1.5,col="blue")
+j <- order(a$High.Tech.Exports  )
+lines(a$High.Tech.Exports   [j],lw1$fitted[j],col="orange",lwd=3)
+
+lw1 <- loess(Per.Capita.GDP ~Women.in.National.Parliament    ,data=a,family="gaussian", span=.75, degree=0)
+plot(Per.Capita.GDP ~Women.in.National.Parliament , data=a,pch=19,cex=1.5,col="blue")
+j <- order(a$Women.in.National.Parliament   )
+lines(a$Women.in.National.Parliament    [j],lw1$fitted[j],col="orange",lwd=3)
+
+lw1 <- loess(Per.Capita.GDP ~Electric.Power.Consumption     ,data=a,family="gaussian", span=.75, degree=0)
+plot(Per.Capita.GDP ~Electric.Power.Consumption , data=a,pch=19,cex=1.5,col="blue")
+j <- order(a$Electric.Power.Consumption    )
+lines(a$Electric.Power.Consumption   [j],lw1$fitted[j],col="orange",lwd=3)
+
+lw1 <- loess(Per.Capita.GDP ~Improved.Water.Source     ,data=a,family="gaussian", span=.75, degree=0)
+plot(Per.Capita.GDP ~Improved.Water.Source  , data=a,pch=19,cex=1.5,col="blue")
+j <- order(a$Improved.Water.Source     )
+lines(a$Improved.Water.Source    [j],lw1$fitted[j],col="orange",lwd=3)
+
+lw1 <- loess(Per.Capita.GDP ~Primary.Education.Enrollment    ,data=a,family="gaussian", span=.75, degree=0)
+plot(Per.Capita.GDP ~Primary.Education.Enrollment , data=a,pch=19,cex=1.5,col="blue")
+j <- order(a$Primary.Education.Enrollment     )
+lines(a$Primary.Education.Enrollment [j],lw1$fitted[j],col="orange",lwd=3)
+
+dev.new()
+
+rm(list=ls());options(scipen = 999)
+
+# Read data
+data<-read.csv("CompiledData03.csv", header = TRUE,na.strings=c("NA","NaN", " "))
+attach(data)
+
+# Partitioning
+library(RGtk2)
+library(rpart)
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
+
+
+# PARTITIONING ANALYSIS: Final Tree     
+per.capita.GDP.fit<-rpart(Per.Capita.GDP~+Life.Expectancy+Females.in.Labor.Force+Internet.Users+
+Mobile.Cellular.Subscriptions+High.Tech.Exports+Women.in.National.Parliament+Improved.Water.Source+
+Primary.Education.Enrollment
+,minbucket=5,cp=0.001);
+dev.new();fancyRpartPlot(per.capita.GDP.fit);dev.new()
+data=cbind(data,data.frame(predict(per.capita.GDP.fit)))
+plot( data$predict.per.capita.GDP.fit.,data$Per.Capita.GDP,xlab="Predicted per Capita GDP",ylab="Per Capita GDP",pch=19)
+# THE FOLLWOING LINES ARE NEW
+text(x=10000,y=50000, paste("R squared = ", round(summary(lm(data$Per.Capita.GDP~data$predict.per.capita.GDP.fit.))$r.squared,digits=2), sep="")) 
+lines(data$predict.per.capita.GDP.fit.,fitted(lm(data$Per.Capita.GDP~data$predict.per.capita.GDP.fit.)),col="orange",lwd=3)
+a <- predict(lm(data$Per.Capita.GDP~data$predict.per.capita.GDP.fit.), interval="confidence",level=0.99) 
+lines(data$predict.per.capita.GDP.fit., a[,2], lty=2)
+lines(data$predict.per.capita.GDP.fit., a[,3], lty=2)
