@@ -1,2 +1,4 @@
 # gdp_analysis
-Script for comparison of per capita GDP to various social development variables
+This repository contains the R scripts and associated data files for a per capita GDP analysis. The analysis consists of comparing the the per capita GDP of countries over the years 2003, 2008 and 2013 to data on their internet users, high technology exports, percentage of women in the labor force, percentage of women in National Parliament, electric power consumption, access to an improved water source, life expectancy, mobile cellular subscriptions, and percentage of individuals enrolled in primary education. This data was accessed from the World Bank (www.worldbank.org)
+
+The analysis includes computing summary statistics for the variables and developing a matrix scatter plot, as well as performing a k-means clustering analysis and a partioning analysis.
