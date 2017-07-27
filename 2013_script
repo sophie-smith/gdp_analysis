@@ -1,10 +1,10 @@
-#attach the data and perform eda
+# attach the data and perform eda
 setwd("/Users/sophiesmith/Desktop/Transfer Files/Final Project/SR Analysis")
 data<-read.csv(file="2013FinalNoPopulation.csv")
 attach(data)
-#get rid of missing data values
+# get rid of missing data values
 data=na.omit(data)
-#summary statistics and matrix scatter plot
+# summary statistics and matrix scatter plot
 summary(data)
 pairs(data)
 
@@ -151,7 +151,6 @@ Primary.Education.Enrollment
 dev.new();fancyRpartPlot(per.capita.GDP.fit);dev.new()
 data=cbind(data,data.frame(predict(per.capita.GDP.fit)))
 plot( data$predict.per.capita.GDP.fit.,data$Per.Capita.GDP,xlab="Predicted per Capita GDP",ylab="Per Capita GDP",pch=19)
-# THE FOLLWOING LINES ARE NEW
 text(x=20000,y=100000, paste("R squared = ", round(summary(lm(data$Per.Capita.GDP~data$predict.per.capita.GDP.fit.))$r.squared,digits=2), sep="")) 
 lines(data$predict.per.capita.GDP.fit.,fitted(lm(data$Per.Capita.GDP~data$predict.per.capita.GDP.fit.)),col="orange",lwd=3)
 a <- predict(lm(data$Per.Capita.GDP~data$predict.per.capita.GDP.fit.), interval="confidence",level=0.99) 
